@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Drawing.Printing;
 using System.Text;
 
 public class BarcodeGenerator
@@ -27,7 +28,7 @@ public class BarcodeGenerator
         "11110101110", "11010000100", "11010010000", "11010011100", "1100011101011", "11010100000"
     };
 
-    public static Bitmap GenerateBarcode(string input, int width = 300, int height = 100)
+    public static Bitmap GenerateBarcode(string input, int width = 270, int height = 100)
     {
         string encodedString = EncodeCode128(input);
 
@@ -62,6 +63,87 @@ public class BarcodeGenerator
         return bitmap;
     }
 
+    public static Bitmap GenerateBarcodeWithPrice(string input, string price, int width = 270, int height = 150)
+    {
+        string encodedString = EncodeCode128(input);
+
+        Bitmap bitmap = new Bitmap(width, height);
+        using (Graphics graphics = Graphics.FromImage(bitmap))
+        {
+            graphics.Clear(Color.White);
+
+            int x = 10;
+            int y = 10;
+            int barWidth = 2;
+            int barcodeHeight = height - 60;
+
+
+            foreach (char c in encodedString)
+            {
+                if (c == '1')
+                {
+                    graphics.FillRectangle(Brushes.Black, x, y, barWidth, barcodeHeight);
+                }
+                x += barWidth;
+            }
+
+
+            Font font = new Font("Arial", 10);
+            StringFormat stringFormat = new StringFormat();
+            stringFormat.Alignment = StringAlignment.Center;
+            graphics.DrawString(input, font, Brushes.Black, new PointF(width / 2, barcodeHeight + 20), stringFormat);
+
+            Font priceFont = new Font("Arial", 20);
+            StringFormat priceStringFormat = new StringFormat();
+            priceStringFormat.Alignment = StringAlignment.Far;
+            graphics.DrawString(price, priceFont, Brushes.Black, new PointF(width / 2, barcodeHeight + 40), stringFormat);
+
+        }
+
+        return bitmap;
+    }
+
+    public static Bitmap GenerateBarcodeWithPriceAndName(string input, string price, string name, int width = 270, int height = 200,bool HasDollarSign = false)
+    {
+        string encodedString = EncodeCode128(input);
+
+        Bitmap bitmap = new Bitmap(width, height);
+        using (Graphics graphics = Graphics.FromImage(bitmap))
+        {
+            graphics.Clear(Color.White);
+
+            int x = 10;
+            int y = 10;
+            int barWidth = 2;
+            int barcodeHeight = height - 60;
+
+
+            foreach (char c in encodedString)
+            {
+                if (c == '1')
+                {
+                    graphics.FillRectangle(Brushes.Black, x, y, barWidth, barcodeHeight);
+                }
+                x += barWidth;
+            }
+
+
+            Font font = new Font("Arial", 10);
+            StringFormat stringFormat = new StringFormat();
+            stringFormat.Alignment = StringAlignment.Center;
+            graphics.DrawString(input, font, Brushes.Black, new PointF(width / 2, barcodeHeight + 20), stringFormat);
+
+
+            Font priceFont = new Font("Arial", 15);
+            StringFormat priceStringFormat = new StringFormat();
+            priceStringFormat.Alignment = StringAlignment.Center;
+            graphics.DrawString($"{(!HasDollarSign? price: price +" $")} : {name}", priceFont, Brushes.Black, new PointF(width / 2, barcodeHeight + 40), stringFormat);
+        }
+
+        return bitmap;
+    }
+
+
     private static string EncodeCode128(string input)
     {
         StringBuilder result = new StringBuilder();
@@ -94,10 +176,8 @@ public class BarcodeGenerator
 
         string uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
 
-        Bitmap barcode = GenerateBarcode(uniqueId);
-        var res = EncodeCode128(uniqueId);
-        Console.WriteLine(res);
-        barcode.Save("barcode.png", ImageFormat.Png);
-        Console.WriteLine("Barcode saved as barcode.png");
+        Bitmap barcode = GenerateBarcodeWithPriceAndName(uniqueId, "Jordan 4", 300.ToString("N0"),HasDollarSign:true);
+        barcode.Save($"{uniqueId}.png", ImageFormat.Png);
+        Console.WriteLine($"{uniqueId} saved as barcode.png");
     }
 }
